@@ -86,7 +86,7 @@ merged = price_data.merge(usage_data, on=['date'], how='inner') \
 
 base_scenario = merged \
     .mutate(lambda total_grid_energy_exported, amber_feed_in: total_grid_energy_exported * amber_feed_in / 100000, 'feed_in') \
-    .mutate(lambda grid_energy_imported, amber_general: grid_energy_imported * amber_general / 100000 / 1.1, 'usage') \
+    .mutate(lambda grid_energy_imported, amber_general: grid_energy_imported * amber_general / 100000, 'usage') \
     .group_by(grouping_cols=['month'], other_cols=['feed_in', 'usage']) \
     .replace(lambda x: round(sum(x), 2), ['feed_in', 'usage']) \
     .with_constant('base_scenario', 'scenario') \
@@ -94,7 +94,7 @@ base_scenario = merged \
     .select(['month', 'scenario', 'usage', 'feed_in', 'bill_total'])
 
 no_battery_or_solar = merged \
-    .mutate(lambda total_home_usage, amber_general: total_home_usage * amber_general / 100000 / 1.1, 'usage') \
+    .mutate(lambda total_home_usage, amber_general: total_home_usage * amber_general / 100000, 'usage') \
     .group_by(grouping_cols=['month'], other_cols=['usage']) \
     .replace(lambda x: round(sum(x), 2), ['usage']) \
     .with_constant(0.0, 'feed_in') \
@@ -108,7 +108,7 @@ solar_only = merged \
     .mutate(lambda total_home_usage, total_solar_generation: max(total_solar_generation - total_home_usage, 0.0),
             'solar_only_feed_in') \
     .mutate(lambda solar_only_feed_in, amber_feed_in: solar_only_feed_in * amber_feed_in / 100000, 'feed_in') \
-    .mutate(lambda solar_only_usage, amber_general: solar_only_usage * amber_general / 100000 / 1.1, 'usage') \
+    .mutate(lambda solar_only_usage, amber_general: solar_only_usage * amber_general / 100000, 'usage') \
     .group_by(grouping_cols=['month'], other_cols=['feed_in', 'usage']) \
     .replace(lambda x: round(sum(x), 2), ['feed_in', 'usage']) \
     .with_constant('solar_only', 'scenario') \
@@ -117,7 +117,7 @@ solar_only = merged \
 
 battery_only = merged \
     .mutate(lambda grid_energy_exported_from_battery, amber_feed_in: grid_energy_exported_from_battery * amber_feed_in / 100000,'feed_in') \
-    .mutate(lambda grid_energy_imported, amber_general, battery_energy_imported_from_solar: (battery_energy_imported_from_solar + grid_energy_imported) * amber_general / 100000 / 1.1,'usage') \
+    .mutate(lambda grid_energy_imported, amber_general, battery_energy_imported_from_solar: (battery_energy_imported_from_solar + grid_energy_imported) * amber_general / 100000,'usage') \
     .group_by(grouping_cols=['month'], other_cols=['feed_in', 'usage']) \
     .replace(lambda x: round(sum(x), 2), ['feed_in', 'usage']) \
     .with_constant('battery_only', 'scenario') \
